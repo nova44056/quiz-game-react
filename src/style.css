@@ -1,0 +1,21 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.slide-progress-bar {
+    width: 100%;
+    background-color: rgba(155, 155, 255, 0.36);
+    transition: width 10s linear;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.progress-bar {
+    height: 5px;
+    background-color: #aff;
+    width: 0%;
+    position: relative;
+    transition: linear;
+}

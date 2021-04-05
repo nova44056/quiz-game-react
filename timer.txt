@@ -1,0 +1,17 @@
+  var timer = useRef();
+  const [timerStatus, toggleTimerStatus] = useState(false);
+
+    // useEffect(() => {
+  //   const startTimer = () => {
+  //     if (timerStatus) {
+  //       var seconds = 1;
+  //       timer.current = setInterval(() => {
+  //         console.log(seconds + " seconds has passed ...");
+  //         seconds++;
+  //       }, 1000);
+  //     }
+  //   };
+  //   if (timerStatus) {
+  //     startTimer();
+  //   }
+  // }, [timerStatus]);
