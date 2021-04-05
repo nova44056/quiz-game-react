@@ -17,5 +17,5 @@
     background-color: #aff;
     width: 0%;
     position: relative;
-    transition: linear;
+    transition: all .5s linear;
 }

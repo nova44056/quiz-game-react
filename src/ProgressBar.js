@@ -1,6 +1,11 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { stopProgressBar } from "./actions/progressBarAction";
 
-export default function ProgressBar(props) {
+export default function ProgressBar() {
+  const state = useSelector((state) => state.progressBar);
+  const dispatch = useDispatch();
+
   const progressBar = useRef(null);
   var progressInterval = useRef(null);
   const DEFAULT_WIDTH = 0;
@@ -27,6 +32,7 @@ export default function ProgressBar(props) {
       toggleClockStatus(true);
       progressInterval.current = setInterval(() => {
         if (width.current >= 100) {
+          dispatch(stopProgressBar());
           resetProgressBar();
           resetClock();
         } else {
@@ -35,10 +41,10 @@ export default function ProgressBar(props) {
         }
       }, 250);
     }
-    if (props.state) {
+    if (state.status) {
       startProgressBar();
     }
-  }, [props.state]);
+  }, [state.status, dispatch]);
 
   useEffect(() => {
     const startTimer = () => {

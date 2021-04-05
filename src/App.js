@@ -1,20 +1,14 @@
-import React, { useEffect, useRef, useState } from "react";
 import ProgressBar from "./ProgressBar";
+import { startProgressBar } from "./actions/progressBarAction";
 import "./style.css";
+import { useDispatch } from "react-redux";
 
 function App() {
-  const [state, setState] = useState(false);
-
-  useEffect(() => {
-    console.log("State is updating ...");
-  }, [state]);
+  const dispatch = useDispatch();
   return (
     <div className="App">
-      <button>Start</button>
-      <button onClick={() => setState((prevState) => !prevState)}>
-        Toggle state
-      </button>
-      <ProgressBar state={state} />
+      <button onClick={() => dispatch(startProgressBar())}>Start</button>
+      <ProgressBar />
     </div>
   );
 }
