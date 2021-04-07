@@ -7,7 +7,7 @@
 .slide-progress-bar {
     width: 100%;
     background-color: rgba(155, 155, 255, 0.36);
-    transition: width 10s linear;
+    /* transition: width 10s linear; */
     display: inline-block;
     vertical-align: middle;
 }
@@ -16,6 +16,6 @@
     height: 5px;
     background-color: #aff;
     width: 0%;
+    transition: width .1s linear;
     position: relative;
-    transition: all .5s linear;
 }
