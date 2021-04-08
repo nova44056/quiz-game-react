@@ -1,10 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import ProgressBar from "./ProgressBar";
 import CountdownTimer from "./CountdownTimer";
-import { startProgressBar, stopProgressBar } from "./actions/progressBarAction";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 
 import { startTimer, stopTimer } from "./actions/timerAction";
+
+// mock data
+// TODO convert it into a redux state afer everything works
 const initialState = {
   data: [
     {
@@ -76,13 +78,14 @@ export default function Quiz() {
   const [status, setStatus] = useState(true);
   const timeOut = useRef(null);
 
-  const DEFAULT_COUTNDOWN_TIME = 5;
-  const [countdownTime, setCountdownTime] = useState(DEFAULT_COUTNDOWN_TIME);
+  const DEFAULT_COUTNDOWN_TIME = 10;
 
   useEffect(() => {
     dispatch(startTimer());
   }, [dispatch, currentQuestion]);
 
+  // TODO refactor this block of code
+  // ! bad readability
   useEffect(() => {
     timeOut.current = setTimeout(() => {
       setStatus(false);
@@ -93,26 +96,37 @@ export default function Quiz() {
       } else {
         clearInterval(timeOut.current);
         setStatus(false);
+
+        // end of game logic here
+        console.log("End quiz game");
       }
-    }, 5000);
+    }, DEFAULT_COUTNDOWN_TIME * 1000);
   }, [currentQuestion, dispatch]);
 
   return (
     <>
-      <ProgressBar status={status} />
-      <CountdownTimer from={countdownTime} />
       <div>
-        <span>
+        <ProgressBar interval={DEFAULT_COUTNDOWN_TIME} status={status} />
+      </div>
+      <div className="countdown-timer-wrapper">
+        <CountdownTimer interval={DEFAULT_COUTNDOWN_TIME} />
+        <label htmlFor="countdown-timer">&nbsp;seconds</label>
+      </div>
+      <div className="quiz-content">
+        <span className="quiz-question">
+          {`${currentQuestion + 1} .`}
           {
             initialState.data[shuffledQuestions.current[currentQuestion]]
-              .question
+              ?.question
           }
         </span>
-        <ul>
+        <ul className="quiz-answers-wrapper">
           {initialState.data[
             shuffledQuestions.current[currentQuestion]
           ].answers.map((answer, i) => (
-            <li key={`Q${currentQuestion}C${i}`}>{answer}</li>
+            <li className="quiz-answer" key={`Q${currentQuestion}C${i}`}>
+              {answer}
+            </li>
           ))}
         </ul>
       </div>

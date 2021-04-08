@@ -6,7 +6,7 @@ export default function CountdownTimer(props) {
   const state = useSelector((state) => state.timer);
   const dispatch = useDispatch();
   var timer = useRef(null);
-  const [seconds, setSeconds] = useState(props.from);
+  const [seconds, setSeconds] = useState(props.interval);
 
   useEffect(() => {
     if (state.status) {
@@ -18,12 +18,12 @@ export default function CountdownTimer(props) {
         }
       }, 1000);
     } else {
-      setSeconds(props.from);
+      setSeconds(props.interval);
     }
     return () => {
       clearInterval(timer.current);
     };
-  }, [state.status, seconds, dispatch, props.from]);
+  }, [state.status, seconds, dispatch, props.interval]);
   return (
     <>
       <span>{seconds}</span>
