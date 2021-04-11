@@ -14,7 +14,7 @@
 
 @media screen and (max-width: 576px) {
     .quiz-question{
-        font-size: 2em !important;
+        font-size: 1.5em !important;
     }
     .quiz-answer{
         height: 3em !important;
