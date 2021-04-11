@@ -1,10 +1,10 @@
-export const startTimer = () => {
+export const incrementSecond = () => {
   return {
-    type: "START_TIMER",
+    type: "INCREMENT_SECOND",
   };
 };
-export const stopTimer = () => {
+export const resetSecond = () => {
   return {
-    type: "STOP_TIMER",
+    type: "RESET_SECOND",
   };
 };

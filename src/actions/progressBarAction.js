@@ -1,17 +1,11 @@
-export const startProgressBar = () => {
+export const incrementWidth = () => {
   return {
-    type: "START_PROGRESSBAR",
+    type: "INCREMENT_WIDTH",
   };
 };
 
-export const stopProgressBar = () => {
+export const resetWidth = () => {
   return {
-    type: "STOP_PROGRESSBAR",
-  };
-};
-
-export const increment = () => {
-  return {
-    type: "INCREMENT_PROGRESS_COUNTER",
+    type: "RESET_WIDTH",
   };
 };

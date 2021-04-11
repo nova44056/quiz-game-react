@@ -1,32 +1,20 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect } from "react";
+import { TIME_LIMIT, DELAY } from "./utils/const";
+import { incrementSecond } from "./actions/timerAction";
 import { useDispatch, useSelector } from "react-redux";
-import { stopTimer } from "./actions/timerAction";
 
-export default function CountdownTimer(props) {
-  const state = useSelector((state) => state.timer);
+export default function CountdownTimer() {
+  const second = useSelector((state) => state.timer.second);
   const dispatch = useDispatch();
-  var timer = useRef(null);
-  const [seconds, setSeconds] = useState(props.interval);
-
   useEffect(() => {
-    if (state.status) {
-      timer.current = setInterval(() => {
-        if (seconds <= 0) {
-          dispatch(stopTimer());
-        } else {
-          setSeconds((prevState) => prevState - 1);
-        }
-      }, 1000);
-    } else {
-      setSeconds(props.interval);
-    }
-    return () => {
-      clearInterval(timer.current);
-    };
-  }, [state.status, seconds, dispatch, props.interval]);
+    // effect
+    const timer = setInterval(() => dispatch(incrementSecond()), 1000);
+    // clean up
+    return () => clearInterval(timer);
+  }, [second, dispatch]);
   return (
     <>
-      <span>{seconds}</span>
+      <span>{TIME_LIMIT - second}</span>
     </>
   );
 }

@@ -1,23 +1,17 @@
 const initialState = {
-  status: false,
-  progressCounter: 0,
+  width: 0,
 };
 const progressBarReducer = (state = initialState, action) => {
   switch (action.type) {
-    case "START_PROGRESSBAR":
+    case "INCREMENT_WIDTH":
       return {
         ...state,
-        status: true,
+        width: (state.width + 1) % 101,
       };
-    case "STOP_PROGRESSBAR":
+    case "RESET_WIDTH":
       return {
         ...state,
-        status: false,
-      };
-    case "INCREMENT_PROGRESS_COUNTER":
-      return {
-        ...state,
-        progressCounter: state.progressCounter + 1,
+        width: 0,
       };
     default:
       return state;

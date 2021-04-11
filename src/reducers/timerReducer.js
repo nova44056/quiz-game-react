@@ -1,17 +1,18 @@
+import { TIME_LIMIT } from "../utils/const";
 const initialState = {
-  status: false,
+  second: 0,
 };
 const timerReducer = (state = initialState, action) => {
   switch (action.type) {
-    case "START_TIMER":
+    case "INCREMENT_SECOND":
       return {
         ...state,
-        status: true,
+        second: (state.second + 1) % TIME_LIMIT,
       };
-    case "STOP_TIMER":
+    case "RESET_SECOND":
       return {
         ...state,
-        status: false,
+        second: 0,
       };
     default:
       return state;

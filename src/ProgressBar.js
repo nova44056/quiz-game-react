@@ -1,31 +1,20 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect } from "react";
+import { TIME_LIMIT } from "./utils/const";
 
-export default function ProgressBar(props) {
-  const progressBar = useRef(null);
-  var progressInterval = useRef(null);
-  const width = useRef(0);
-
+export default function ProgressBar() {
+  // ? progress bar
   useEffect(() => {
-    if (props.status) {
-      progressInterval.current = setInterval(() => {
-        if (width.current < 100) {
-          width.current++;
-          progressBar.current.style.width = width.current + "%";
-        }
-      }, props.interval * 10);
-    } else {
-      width.current = 0;
-      progressInterval.current = null;
-    }
-    return () => {
-      clearInterval(progressInterval.current);
-    };
-  }, [props.status, props.interval]);
+    document.querySelector(
+      ".fill-animation"
+    ).style.animationDuration = `${TIME_LIMIT}s`;
+    document.querySelector(".fill-animation").style.animationIterationCount =
+      "infinite";
+  }, []);
 
   return (
     <>
-      <div className="slide-progress-bar">
-        <div ref={progressBar} className="progress-bar" id="progress-bar"></div>
+      <div className="progress-bar">
+        <div className="progress-bar-fill fill-animation" />
       </div>
     </>
   );

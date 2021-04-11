@@ -1,9 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import ProgressBar from "./ProgressBar";
 import CountdownTimer from "./CountdownTimer";
-import { useDispatch } from "react-redux";
-
-import { startTimer, stopTimer } from "./actions/timerAction";
+import { TIME_LIMIT } from "./utils/const";
 
 // mock data
 // TODO convert it into a redux state afer everything works
@@ -71,45 +69,56 @@ export default function Quiz() {
       totalQuestions - numberOfQuestions
     )
   );
+
   const [currentQuestion, setCurrentQuestion] = useState(0);
+  const nextQuestion = () => setCurrentQuestion((prevState) => prevState + 1);
 
-  const dispatch = useDispatch();
-
-  const [status, setStatus] = useState(true);
-  const timeOut = useRef(null);
-
-  const DEFAULT_COUTNDOWN_TIME = 10;
-
+  //? currentQuestion
   useEffect(() => {
-    dispatch(startTimer());
-  }, [dispatch, currentQuestion]);
+    let interval = null;
+    if (currentQuestion + 1 < numberOfQuestions)
+      interval = setTimeout(nextQuestion, TIME_LIMIT * 1000);
+    return () => clearTimeout(interval);
+  }, [currentQuestion]);
 
-  // TODO refactor this block of code
-  // ! bad readability
-  useEffect(() => {
-    timeOut.current = setTimeout(() => {
-      setStatus(false);
-      dispatch(stopTimer());
-      setStatus(true);
-      if (currentQuestion + 1 < numberOfQuestions) {
-        setCurrentQuestion((prevState) => prevState + 1);
-      } else {
-        clearInterval(timeOut.current);
-        setStatus(false);
+  const choiceClicked = (e) => {
+    const answerKey =
+      initialState.data[shuffledQuestions.current[currentQuestion]].answerKey;
+    const element = e.target;
+    if (element.innerHTML === answerKey) {
+      console.log("Correct answer");
+      element.style.backgroundColor = "#3863A0";
+    } else {
+      console.log("Wrong answer");
+      element.style.backgroundColor = "#AF3031";
+    }
+    // disable other button click after user has chosen answer
+    Array.from(e.target.parentNode.children).map(
+      (button) => (button.disabled = true)
+    );
+    // TODO pause timer
+    // TODO pause progress bar
+    // TODO show result
 
-        // end of game logic here
-        console.log("End quiz game");
-      }
-    }, DEFAULT_COUTNDOWN_TIME * 1000);
-  }, [currentQuestion, dispatch]);
+    // TODO reset second
+    // TODO reset progress bar
+    //? Reference: http://jsfiddle.net/leaverou/xK6sa/
+    // document.querySelector(".fill-animation").style.webkitAnimation = "none";
+    // setTimeout(function () {
+    //   document.querySelector(
+    //     ".fill-animation"
+    //   ).style.webkitAnimation = `fill ${TIME_LIMIT}s linear infinite`;
+    // }, 10);
+    // TODO increment question
+  };
 
   return (
     <>
       <div>
-        <ProgressBar interval={DEFAULT_COUTNDOWN_TIME} status={status} />
+        <ProgressBar />
       </div>
       <div className="countdown-timer-wrapper">
-        <CountdownTimer interval={DEFAULT_COUTNDOWN_TIME} />
+        <CountdownTimer />
         <label htmlFor="countdown-timer">&nbsp;seconds</label>
       </div>
       <div className="quiz-content">
@@ -120,15 +129,19 @@ export default function Quiz() {
               ?.question
           }
         </span>
-        <ul className="quiz-answers-wrapper">
+        <div className="quiz-answers-wrapper">
           {initialState.data[
             shuffledQuestions.current[currentQuestion]
-          ].answers.map((answer, i) => (
-            <li className="quiz-answer" key={`Q${currentQuestion}C${i}`}>
+          ]?.answers.map((answer, i) => (
+            <button
+              onClick={(e) => choiceClicked(e)}
+              className="quiz-answer"
+              key={`Q${currentQuestion}C${i}`}
+            >
               {answer}
-            </li>
+            </button>
           ))}
-        </ul>
+        </div>
       </div>
     </>
   );
