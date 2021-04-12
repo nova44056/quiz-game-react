@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import ProgressBar from "./ProgressBar";
 import CountdownTimer from "./CountdownTimer";
+import Result from "./Result";
 import { TIME_LIMIT } from "./utils/const";
 import {
   pauseTimer,
@@ -8,46 +9,13 @@ import {
   setCheckpoint,
   resetSecond,
 } from "./actions/timerAction";
+import {
+  markQuestionAsAnswered,
+  markQuestionAsUnanswered,
+  incrementScore,
+} from "./actions/quizAction";
 import { useDispatch, useSelector } from "react-redux";
 
-// mock data
-// TODO convert it into a redux state afer everything works
-const initialState = {
-  data: [
-    {
-      question:
-        "If soccer is called football in England, what is American football called in England?",
-      answers: ["American football", "Combball", "Handball", "Touchdown"],
-      answerKey: "American football",
-    },
-    {
-      question: "What is the largest country in the world?",
-      answers: ["Russia", "Canada", "China", "United States"],
-      answerKey: "Russia",
-    },
-    {
-      question:
-        "An organic compound is considered an alcohol if it has what functional group?",
-      answers: ["Hydroxyl", "Carbonyl", "Alkyl", "Aldehyde"],
-      answerKey: "Hydroxyl",
-    },
-    {
-      question: "What is the 100th digit of Pi?",
-      answers: ["9", "4", "7", "2"],
-      answerKey: "9",
-    },
-    {
-      question: "A doctor with a PhD is a doctor of what?",
-      answers: ["Philosophy", "Psychology", "Phrenology", "Physical Therapy"],
-      answerKey: "Philosophy",
-    },
-    {
-      question: "What year did World War I begin?",
-      answers: ["1914", "1905", "1919", "1925"],
-      answerKey: "1914",
-    },
-  ],
-};
 //? Reference: https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
 function shuffle(array) {
   var currentIndex = array.length,
@@ -69,57 +37,84 @@ function shuffle(array) {
   return array;
 }
 export default function Quiz() {
-  const numberOfQuestions = 5;
-  const totalQuestions = initialState.data.length;
-
   const dispatch = useDispatch();
 
+  const quizState = useSelector((state) => state.quiz);
+  const timerState = useSelector((state) => state.timer);
+
+  const GAME_QUESTION_COUNT = 5;
+
+  //? generate an array with a value of 1 to quizState.data.length
+  //? then apply the shuffle algorithm and shorten the length of shuffled array to GAME_QUESTION_COUNT length
   const shuffledQuestions = useRef(
-    shuffle(Array.from({ length: totalQuestions }, (_, index) => index)).splice(
-      totalQuestions - numberOfQuestions
-    )
+    shuffle(
+      Array.from({ length: quizState.data.length }, (_, index) => index)
+    ).splice(quizState.data.length - GAME_QUESTION_COUNT)
   );
 
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  var answerKey =
-    initialState.data[shuffledQuestions.current[currentQuestion]].answerKey;
   const nextQuestion = () => setCurrentQuestion((prevState) => prevState + 1);
-  const [unansweredQuestion, setUnansweredQuestion] = useState(0);
-  const incrementUnansweredQuestion = () =>
-    setUnansweredQuestion((prevState) => prevState + 1);
 
-  const pause = useSelector((state) => state.timer.pause);
-  const secondsElasped = useSelector((state) => state.timer.second);
-  const checkpoint = useSelector((state) => state.timer.checkpoint);
+  const answerKey =
+    quizState.data[shuffledQuestions.current[currentQuestion]].answerKey;
+
+  const [gameIsFinished, setGameIsFinished] = useState(false);
 
   //? currentQuestion
   useEffect(() => {
-    if (pause) return;
+    if (timerState.pause) return;
     let interval = null;
-    if (currentQuestion + 1 < numberOfQuestions)
-      interval = setTimeout(nextQuestion, (TIME_LIMIT - checkpoint) * 1000);
+    if (currentQuestion + 1 < GAME_QUESTION_COUNT)
+      interval = setTimeout(
+        nextQuestion,
+        (TIME_LIMIT - timerState.checkpoint) * 1000
+      );
     return () => clearTimeout(interval);
-  }, [currentQuestion, pause, checkpoint]);
+  }, [currentQuestion, timerState.pause, timerState.checkpoint]);
 
   //? check for unanswered questions
   useEffect(() => {
-    const timeout = setTimeout(incrementUnansweredQuestion, TIME_LIMIT * 1000);
+    const timeout = setTimeout(
+      () => dispatch(markQuestionAsUnanswered()),
+      TIME_LIMIT * 1000
+    );
     const eventHandler = (_e) => {
       clearInterval(timeout);
     };
     window.addEventListener("click", eventHandler);
     return () => window.removeEventListener("click", eventHandler);
-  }, [currentQuestion, answerKey]);
+  }, [currentQuestion, dispatch]);
+
+  //? end of game
+  useEffect(() => {
+    if (
+      quizState.questionsAnswered + quizState.questionsUnanswered ===
+      GAME_QUESTION_COUNT
+    ) {
+      document.querySelector(".progress-bar-fill").style.animationPlayState =
+        "paused";
+      setTimeout(() => setGameIsFinished(true), 2000);
+    }
+  }, [
+    quizState.questionsAnswered,
+    quizState.questionsUnanswered,
+    gameIsFinished,
+  ]);
 
   //? user choose an answer
   const choiceClicked = (e) => {
-    let result = null;
+    dispatch(markQuestionAsAnswered());
     const element = e.target;
+    const answerStatusText = document.querySelector(".quiz-answer-status");
+    // check if answer is correct and show result
     if (element.innerHTML === answerKey) {
-      result = "Correct answer";
+      answerStatusText.parentElement.classList.add("correct-answer");
+      answerStatusText.innerHTML = "Correct answer";
       element.style.backgroundColor = "#3863A0";
+      dispatch(incrementScore());
     } else {
-      result = "Wrong answer";
+      answerStatusText.parentElement.classList.add("wrong-answer");
+      answerStatusText.innerHTML = "Wrong answer";
       element.style.backgroundColor = "#AF3031";
     }
     // disable other button click after user has chosen answer
@@ -132,32 +127,55 @@ export default function Quiz() {
     document.querySelector(".fill-animation").style.animationPlayState =
       "paused";
     // pause current question increment process
-    dispatch(setCheckpoint(secondsElasped));
+    dispatch(setCheckpoint(timerState.second));
     //TODO show result
     // move on to the next question after 2 seconds
-    setTimeout(() => {
-      // reset checkpoint
-      dispatch(setCheckpoint(0));
-      // reset second
-      dispatch(resetSecond());
-      // increment question
-      if (currentQuestion + 1 < numberOfQuestions) nextQuestion();
-      // make timer resume running
-      dispatch(resumeTimer());
-      // restart progress bar
-      // ? Reference: http://jsfiddle.net/leaverou/xK6sa/
-      document.querySelector(".fill-animation").style.webkitAnimation = "none";
-      setTimeout(function () {
-        document.querySelector(
-          ".fill-animation"
-        ).style.webkitAnimation = `fill ${TIME_LIMIT}s linear infinite`;
-      }, 10);
-    }, 2000);
+    if (
+      quizState.questionsAnswered + quizState.questionsUnanswered <
+      GAME_QUESTION_COUNT - 1
+    ) {
+      setTimeout(() => {
+        // reset answer status
+        answerStatusText.innerHTML = "";
+        answerStatusText.parentElement.webkitAnimation = "none";
+        if (answerStatusText.parentElement.classList.contains("correct-answer"))
+          answerStatusText.parentElement.classList.remove("correct-answer");
+        else answerStatusText.parentElement.classList.remove("wrong-answer");
+        // reset checkpoint
+        dispatch(setCheckpoint(0));
+        // reset second
+        dispatch(resetSecond());
+        // increment question
+        if (currentQuestion + 1 < GAME_QUESTION_COUNT) nextQuestion();
+        // make timer resume running
+        dispatch(resumeTimer());
+        // restart progress bar
+        // ? Reference: http://jsfiddle.net/leaverou/xK6sa/
+        document.querySelector(".fill-animation").style.webkitAnimation =
+          "none";
+        setTimeout(function () {
+          document.querySelector(
+            ".fill-animation"
+          ).style.webkitAnimation = `fill ${TIME_LIMIT}s linear infinite`;
+        }, 10);
+      }, 1 * 1000);
+    }
   };
 
   return (
     <>
-      <div>Unanswered Question: {unansweredQuestion}</div>
+      <div className="quiz-header-wrapper">
+        <div className="quiz-question-count-wrapper">
+          <span>Unanswered Question: {quizState.questionsUnanswered}</span>
+          <span>Answered Question: {quizState.questionsAnswered}</span>
+        </div>
+        <div className="quiz-answer-status-wrapper">
+          <span className="quiz-answer-status" />
+        </div>
+        <div className="quiz-score-wrapper">
+          <span>Score: {quizState.score}</span>
+        </div>
+      </div>
       <div>
         <ProgressBar />
       </div>
@@ -168,13 +186,10 @@ export default function Quiz() {
       <div className="quiz-content">
         <span className="quiz-question">
           {`${currentQuestion + 1} .`}
-          {
-            initialState.data[shuffledQuestions.current[currentQuestion]]
-              ?.question
-          }
+          {quizState.data[shuffledQuestions.current[currentQuestion]]?.question}
         </span>
         <div className="quiz-answers-wrapper">
-          {initialState.data[
+          {quizState.data[
             shuffledQuestions.current[currentQuestion]
           ]?.answers.map((answer, i) => (
             <button
@@ -187,6 +202,7 @@ export default function Quiz() {
           ))}
         </div>
       </div>
+      {gameIsFinished && <Result />}
     </>
   );
 }

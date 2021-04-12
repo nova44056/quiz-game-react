@@ -33,11 +33,29 @@ const initialState = {
       answerKey: "1914",
     },
   ],
-  totalQuestions: initialState["data"].length(),
-  questionAnswered: 0,
+  questionsAnswered: 0,
+  questionsUnanswered: 0,
+  score: 0,
 };
 const quizReducer = (state = initialState, action) => {
   switch (action.type) {
+    case "ANSWERED":
+      return {
+        ...state,
+        questionsAnswered: state.questionsAnswered + 1,
+      };
+    case "UNANSWERED":
+      return {
+        ...state,
+        questionsUnanswered: state.questionsUnanswered + 1,
+      };
+    case "INCREMENT_SCORE":
+      return {
+        ...state,
+        score: state.score + 1,
+      };
+    default:
+      return state;
   }
 };
 export default quizReducer;
